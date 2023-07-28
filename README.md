@@ -30,7 +30,7 @@ or
      cert_base_name.crt
      cert_base_name.key
      cert_base_name.bundle
- 
+
 With the text subcommand, `certcheck` returns the main values
 (lifetime, DNS name...) of the public key.
 
