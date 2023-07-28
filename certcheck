@@ -1,0 +1,171 @@
+#!/bin/bash
+#
+# 2023/07/28 Gabriel Moreau <Gabriel.Moreau@univ-grenoble-alpes.fr>
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
+export LANG=C
+
+export VERSION=0.3.1
+
+function usage() {
+   cat <<END_USAGE
+certcheck - check certificate chain
+
+ certcheck text  cert_base_name.pub.pem
+ certcheck check cert_base_name
+ certcheck version
+ certcheck help
+END_USAGE
+   }
+
+function say_oops() {
+   echo "say_oops: $*" >&2
+   exit 23
+   }
+
+[ -z "$(pidof openssl)" ] || say_oops "openssl running, consider: killall openssl"
+
+PID=
+function call_kick() {
+   [ -n "${PID}" ] && kill "${PID}" && sleep .2
+   PID=
+}
+
+trap 'call_kick' 0
+
+function call_serve() {
+   call_kick
+   PID=
+   openssl s_server -key "${KEY}" -cert "${CRT}" "$@" -www &
+   PID=$!
+   sleep .5    # give it time to startup
+}
+
+function call_check() {
+   while read -r line
+   do
+      case "$line" in
+         'Verify return code: 0 (ok)')   return 0;;
+         'Verify return code: '*)    return 1;;
+      esac
+   done < <(echo | openssl s_client -verify 8 -CApath /etc/ssl/certs/)
+   say_oops "Something failed, verification output not found!"
+   return 2
+}
+
+function call_cfiles() {
+	[ -s "${CRT}" ] || CRT="${ARG}"
+	[ -s "${CRT}" ] || CRT="${ARG}.crt"
+	[ -s "${KEY}" ] || KEY="${ARG}.key"
+	[ -s "${BND}" ] || BND="${ARG}.bundle"
+}
+
+action=$1; shift
+ARG="${1%.}"
+KEY="${ARG}.key.pem"
+CRT="${ARG}.pub.pem"
+BND="${ARG}.chain.pem"
+call_cfiles
+
+case "${action}" in
+   check)
+      for a in "${KEY}" "${CRT}" "${BND}"
+      do
+         [ -s "$a" ] || say_oops "missing $a"
+      done
+
+      call_serve
+      call_check && echo "!!! =========> CA-Bundle is not needed! <========"
+      echo
+      call_serve -CAfile "${BND}"
+      call_check
+      ret=$?
+      call_kick
+
+      echo
+      case $ret in
+         0)
+            echo "EVERYTHING OK"
+            echo "SSLCertificateKeyFile ${KEY}"
+            echo "SSLCertificateFile    ${CRT}"
+            echo "SSLCACertificateFile  ${BND}"
+            ;;
+         *)
+            echo "!!! =========> something is wrong, verification failed! <======== ($ret)"
+            ;;
+      esac
+
+      exit $ret
+      ;;
+
+   text)
+      [ -s "${CRT}" ] || say_oops "missing ${CRT}"
+      openssl x509 -noout -text -in "${CRT}" \
+         | egrep '(Subject|Not Before|Not After[[:space:]]|DNS|Issuer):' \
+         | sed -e 's/^\s*//g;' \
+         | sort -r
+      ;;
+
+   version)
+      echo "Version: ${VERSION}"
+      ;;
+
+   help|*)
+      usage
+      ;;
+esac
+
+exit 0
+
+
+################################################################
+# documentation
+################################################################
+
+__END__
+
+=head1 NAME
+
+certcheck - check certificate chain
+
+=head1 SYNOPSIS
+
+ certcheck text  cert_base_name.pub.pem
+ certcheck check cert_base_name
+ certcheck version
+ certcheck help
+
+=head1 DESCRIPTION
+
+The command C<certcheck> checks the certificate chain
+and takes the certificate name base as input.
+The three certificates can take the form:
+
+ cert_base_name.pub.pem
+ cert_base_name.key.pem
+ cert_base_name.chain.pem
+
+or
+
+ cert_base_name.crt
+ cert_base_name.key
+ cert_base_name.bundle
+ 
+With the text subcommand, C<certcheck> returns the main values
+(lifetime, DNS name...) of the public key.
+
+
+=head1 AUTHORS
+
+Written by Valentin Hilbig (hilbix https://gist.github.com/hilbix/bde7c02009544faed7a1)
+and extended by Gabriel Moreau <Gabriel.Moreau@univ-grenoble-alpes.fr>, Grenoble - France
+
+
+=head1 COPYRIGHT
+
+Copyright (C) 2015, Valentin Hilbig
+Copyright (C) 2023, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France
+
+Licence: CC0 (Creative Commons Zero - https://spdx.org/licenses/CC0-1.0)
+
+
