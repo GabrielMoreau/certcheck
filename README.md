@@ -25,11 +25,11 @@ The three certificates can take the form:
      cert_base_name.key.pem
      cert_base_name.chain.pem
 
-or
+or one of theses...
 
-     cert_base_name.crt
-     cert_base_name.key
-     cert_base_name.bundle
+     cert_base_name.crt      cert_base_name.cer
+     cert_base_name.key      cert_base_name.keystore
+     cert_base_name.bundle   cert_base_name.ca-bundle
 
 With the text subcommand, `certcheck` returns the main values
 (lifetime, DNS name...) of the public key.
