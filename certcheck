@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 export LANG=C
 
-export VERSION=0.3.2
+export VERSION=0.3.3
 
 function usage() {
    cat <<END_USAGE
@@ -18,26 +18,26 @@ certcheck - check certificate chain
 END_USAGE
    }
 
-function say_oops() {
-   echo "say_oops: $*" >&2
+function say_warning() {
+   echo "Warning: $*" >&2
    exit 23
    }
 
-[ -z "$(pidof openssl)" ] || say_oops "openssl running, consider: killall openssl"
+[ -z "$(pidof openssl)" ] || say_warning "openssl running, consider: killall openssl"
 
-PID=
+PID_SSL=
 function call_kick() {
-   [ -n "${PID}" ] && kill "${PID}" && sleep .2
-   PID=
+   [ -n "${PID_SSL}" ] && kill "${PID_SSL}" && sleep .2
+   PID_SSL=
 }
 
 trap 'call_kick' 0
 
 function call_serve() {
    call_kick
-   PID=
+   PID_SSL=
    openssl s_server -key "${KEY}" -cert "${CRT}" "$@" -www &
-   PID=$!
+   PID_SSL=$!
    sleep .5    # give it time to startup
 }
 
@@ -45,22 +45,26 @@ function call_check() {
    while read -r line
    do
       case "$line" in
-         'Verify return code: 0 (ok)')   return 0;;
-         'Verify return code: '*)    return 1;;
+         'Verify return code: 0 (ok)')
+            return 0
+            ;;
+         'Verify return code: '*)
+            return 1
+            ;;
       esac
    done < <(echo | openssl s_client -verify 8 -CApath /etc/ssl/certs/)
-   say_oops "Something failed, verification output not found!"
+   say_warning "something failed, verification output not found!"
    return 2
 }
 
 function call_cfiles() {
-	[ -s "${CRT}" ] || CRT="${ARG}"
-	[ -s "${CRT}" ] || CRT="${ARG}.cer"
-	[ -s "${CRT}" ] || CRT="${ARG}.pub.pem"
-	[ -s "${KEY}" ] || KEY="${ARG}.keystore"
-	[ -s "${KEY}" ] || KEY="${ARG}.key.pem"
-	[ -s "${BND}" ] || BND="${ARG}.ca-bundle"
-	[ -s "${BND}" ] || BND="${ARG}.chain.pem"
+   [ -s "${CRT}" ] || CRT="${ARG}"
+   [ -s "${CRT}" ] || CRT="${ARG}.cer"
+   [ -s "${CRT}" ] || CRT="${ARG}.pub.pem"
+   [ -s "${KEY}" ] || KEY="${ARG}.keystore"
+   [ -s "${KEY}" ] || KEY="${ARG}.key.pem"
+   [ -s "${BND}" ] || BND="${ARG}.ca-bundle"
+   [ -s "${BND}" ] || BND="${ARG}.chain.pem"
 }
 
 action=$1; shift
@@ -72,13 +76,13 @@ call_cfiles
 
 case "${action}" in
    check)
-      for a in "${KEY}" "${CRT}" "${BND}"
+      for cert in "${KEY}" "${CRT}" "${BND}"
       do
-         [ -s "$a" ] || say_oops "missing $a"
+         [ -s "${cert}" ] || say_warning "missing ${cert}"
       done
 
       call_serve
-      call_check && echo "!!! =========> CA-Bundle is not needed! <========"
+      call_check && echo "Error: CA-Bundle is not needed!"
       echo
       call_serve -CAfile "${BND}"
       call_check
@@ -88,13 +92,13 @@ case "${action}" in
       echo
       case $ret in
          0)
-            echo "EVERYTHING OK"
-            echo "SSLCertificateKeyFile ${KEY}"
-            echo "SSLCertificateFile    ${CRT}"
-            echo "SSLCACertificateFile  ${BND}"
+            echo "Ok: everything is good"
+            echo "ApacheConf: SSLCertificateKeyFile ${KEY}"
+            echo "ApacheConf: SSLCertificateFile    ${CRT}"
+            echo "ApacheConf: SSLCACertificateFile  ${BND}"
             ;;
          *)
-            echo "!!! =========> something is wrong, verification failed! <======== ($ret)"
+            echo "Error: something is wrong, verification failed! ($ret)"
             ;;
       esac
 
@@ -102,7 +106,7 @@ case "${action}" in
       ;;
 
    text|txt)
-      [ -s "${CRT}" ] || say_oops "missing ${CRT}"
+      [ -s "${CRT}" ] || say_warning "missing ${CRT}"
       openssl x509 -noout -text -in "${CRT}" \
          | egrep '(Subject|Not Before|Not After[[:space:]]|DNS|Issuer):' \
          | sed -e 's/^\s*//g;' \
@@ -174,6 +178,19 @@ to find the public certificate.
  certcheck text  cert_base_name.pub.pem
  certcheck txt   cert_base_name.pub.pem
 
+=head2 C<version>
+
+The C<version> subcommand returns the version of C<certcheck>.
+
+ certcheck version
+
+=head2 C<help>
+
+The C<help> subcommand returns this help.
+
+ certcheck help
+
+
 =head1 AUTHORS
 
 Written by Valentin Hilbig (hilbix https://gist.github.com/hilbix/bde7c02009544faed7a1)
@@ -183,7 +200,7 @@ and extended by Gabriel Moreau <Gabriel.Moreau@univ-grenoble-alpes.fr>, Grenoble
 =head1 COPYRIGHT
 
 Copyright (C) 2015, Valentin Hilbig,
-Copyright (C) 2023, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France
+Copyright (C) 2023, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France.
 
 Licence: CC0 (Creative Commons Zero - https://spdx.org/licenses/CC0-1.0)
 
