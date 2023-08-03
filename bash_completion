@@ -9,16 +9,11 @@ _certcheck() {
    cur="${COMP_WORDS[COMP_CWORD]}"
    prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-   if [[ $COMP_CWORD -gt 1 && "${COMP_WORDS[1]}" =~ 'host-' ]]
+   if [[ $COMP_CWORD -gt 1 && "${COMP_WORDS[1]}" =~ 'check'|'text'|'txt' ]]
    then
-      COMPREPLY=($(compgen -W "$((/usr/bin/certcheck help|grep "^ certcheck ${COMP_WORDS[1]}"|sed -e 's/[\[]/\n/g;'|grep -- '^-'|cut -f 1 -d ']'|cut -f 1 -d ' '|sed -e 's/|/ /g;'
-                                 ) | xargs echo -n)" -- "$cur"))
-   elif [[ $COMP_CWORD -gt 1 ]]
-   then
-      COMPREPLY=($(compgen -W "$(/usr/bin/certcheck help|grep "^ certcheck ${COMP_WORDS[1]}"|sed -e 's/[\[]/\n/g;'|grep -- '^-'|cut -f 1 -d ']'|cut -f 1 -d ' '|sed -e 's/|/ /g;'|xargs echo -n)" -- "$cur"))
+      COMPREPLY=($(compgen -f -- "$cur"|grep -v -f <(compgen  -d --|sed -e 's/^/^/;s/$/\$/;'); compgen -d -S / -- "$cur"))
    elif [[ $COMP_CWORD -eq 1 ]]
    then
       COMPREPLY=($(compgen -W "$(/usr/bin/certcheck help | grep '^ certcheck' | awk '{print $2}' | xargs echo -n)" -- "$cur"))
    fi
    } && complete -F _certcheck certcheck
-
