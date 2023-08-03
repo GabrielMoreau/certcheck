@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 export LANG=C
 
-export VERSION=0.3.4
+export VERSION=0.3.5
 
 function usage() {
    cat <<END_USAGE
@@ -107,6 +107,8 @@ case "${action}" in
 
    text|txt)
       [ -s "${CRT}" ] || say_warning "missing ${CRT}"
+      grep -q -- '-----BEGIN PRIVATE KEY-----' && say_warning "give the public and not the private key!"
+      grep -q -- '-----BEGIN CERTIFICATE-----' || say_warning "your key is not in PEM format!"
       openssl x509 -noout -text -in "${CRT}" \
          | egrep '(Subject|Not Before|Not After[[:space:]]|DNS|Issuer):' \
          | sed -e 's/^\s*//g;' \
