@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 export LANG=C
 
-export VERSION=0.3.6
+export VERSION=0.3.7
 
 function usage() {
    cat <<END_USAGE
@@ -13,8 +13,12 @@ certcheck - check certificate chain
 
  certcheck check cert_base_name
  certcheck text  cert_base_name.pub.pem
+ certcheck txt   cert_base_name.pub.pem
+ certcheck info  cert_base_name.pub.pem
  certcheck version
  certcheck help
+ 
+txt and info subcommand are just alias for text.
 END_USAGE
    }
 
@@ -105,9 +109,13 @@ case "${action}" in
       exit $ret
       ;;
 
-   text|txt)
+   text|txt|info)
       [ -s "${CRT}" ] || say_warning "missing ${CRT}"
-      grep -q -- '-----BEGIN PRIVATE KEY-----' "${CRT}" && say_warning 'give the public and not the private key!'
+      if grep -q -- '-----BEGIN PRIVATE KEY-----' "${CRT}"
+      then
+         # Cert could have the public and private part in the same file
+         grep -q -- '-----BEGIN CERTIFICATE-----' "${CRT}" || say_warning 'give the public and not the private key!'
+      fi
       grep -q -- '-----BEGIN CERTIFICATE-----' "${CRT}" || say_warning "your key isn't in PEM format!"
       openssl x509 -noout -text -in "${CRT}" \
          | grep -E '(Subject|Not Before|Not After[[:space:]]|DNS|Issuer):' \
@@ -141,6 +149,8 @@ certcheck - check certificate chain
 
  certcheck check cert_base_name
  certcheck text  cert_base_name.pub.pem
+ certcheck txt   cert_base_name.pub.pem
+ certcheck info  cert_base_name.pub.pem
  certcheck version
  certcheck help
 
@@ -169,9 +179,9 @@ Example:
 
  certcheck check cert_base_name
 
-=head2 C<text> or C<txt>
+=head2 C<text> or C<txt> or C<info>
 
-The C<text> (or C<txt>) subcommand returns the main values
+The C<text> (or C<txt>, C<info>) subcommand returns the main values
 (lifetime, DNS name...) of the public key.
 The certificate's name base can also be used as command-line input,
 in which case the same rules as with L<check> are applied
@@ -179,6 +189,7 @@ to find the public certificate.
 
  certcheck text  cert_base_name.pub.pem
  certcheck txt   cert_base_name.pub.pem
+ certcheck info  cert_base_name.pub.pem
 
 =head2 C<version>
 
