@@ -34,6 +34,17 @@ or one of theses...
 With the text subcommand, `certcheck` returns the main values
 (lifetime, DNS name...) of the public key.
 
+# SEE ALSO
+
+Own project ressources:
+
+* [Web site (Gitlab)](https://gricad-gitlab.univ-grenoble-alpes.fr/legi/soft/trokata/certcheck)
+* [Online Manual](https://legi.gricad-pages.univ-grenoble-alpes.fr/soft/trokata/certcheck/certcheck.html)
+* [Download package (Debian)](https://legi.gricad-pages.univ-grenoble-alpes.fr/soft/trokata/certcheck/download/)
+
+Note: The master Git repository in on the [GRICAD Gitlab](https://gricad-gitlab.univ-grenoble-alpes.fr/legi/soft/trokata/certcheck).
+Other Git repository are mirror or fork.
+
 # AUTHOR
 
 Written by Valentin Hilbig (hilbix https://gist.github.com/hilbix/bde7c02009544faed7a1)
@@ -42,6 +53,6 @@ and extended by Gabriel Moreau <Gabriel.Moreau@univ-grenoble-alpes.fr>, Grenoble
 # COPYRIGHT
 
 Copyright (C) 2015, Valentin Hilbig
-Copyright (C) 2023, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France
+Copyright (C) 2023-2024, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France
 
 Licence: CC0 (Creative Commons Zero - https://spdx.org/licenses/CC0-1.0)
