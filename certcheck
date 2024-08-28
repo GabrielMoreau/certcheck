@@ -61,6 +61,16 @@ function call_check() {
    return 2
 }
 
+function call_autosign() {
+   openssl x509 -noout -text -in "${CRT}" \
+      | grep -E '[[:space:]](Subject|Issuer):[[:space:]]' \
+      | sed -e 's/^[[:space:]]*Subject//; s/^[[:space:]]*Issuer//;' \
+      | sort \
+      | uniq -c \
+      | awk '{print $1}' \
+      | head -1
+}
+
 function call_cfiles() {
    [ -s "${CRT}" ] || CRT="${ARG}"
    [ -s "${CRT}" ] || CRT="${ARG}.cer"
