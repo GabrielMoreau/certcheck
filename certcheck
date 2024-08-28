@@ -17,7 +17,7 @@ certcheck - check certificate chain
  certcheck info  cert_base_name.pub.pem
  certcheck version
  certcheck help
- 
+
 txt and info subcommand are just alias for text.
 END_USAGE
    }
