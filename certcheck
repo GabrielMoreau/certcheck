@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 export LANG=C
 
-export VERSION=0.3.13
+export VERSION=0.3.14
 
 function usage() {
    cat <<END_USAGE
@@ -45,7 +45,7 @@ function call_server_launch() {
    sleep .5    # give it time to startup
 }
 
-function call_check_chained() {
+function check_client_chained() {
    while read -r line
    do
       case "$line" in
@@ -61,13 +61,13 @@ function call_check_chained() {
    return 2
 }
 
-function call_check_selfsigned() {
+function check_client_selfsigned() {
    echo | openssl s_client -verify 8 -CApath /etc/ssl/certs/ 2>&1 | grep -q 'Verification error: self-signed certificate' && return 0
    say_warning "something failed, verification output not found!"
    return 2
 }
 
-function check_certchained() {
+function check_cert_ischained() {
    local public_cert=$1
    
    # return 0: chain certificate, 1: self-signed certificate
@@ -104,21 +104,19 @@ case "${action}" in
       do
          [ -s "${cert}" ] || say_warning "missing ${cert}"
       done
-      if check_certchained "${CRT}"
+      if check_cert_ischained "${CRT}"
       then
          [ -s "${BND}" ] || say_warning "missing ${BND}"
       fi
 
       call_server_launch
-      if check_certchained "${CRT}"
+      if check_cert_ischained "${CRT}"
       then
-        call_check_chained && echo "Error: CA-Bundle is not needed!"
-        echo
+        check_client_chained && echo "Error: CA-Bundle is not needed!"
         call_server_launch -CAfile "${BND}"
-        call_check_chained
+        check_client_chained
       else
-        call_check_selfsigned || echo "Error: not self-signed certificate!"
-        echo
+        check_client_selfsigned || echo "Error: not self-signed certificate!"
       fi
       ret=$?
       call_server_kick
@@ -129,7 +127,7 @@ case "${action}" in
             echo "Ok: everything is good"
             echo "ApacheConf: SSLCertificateKeyFile ${KEY}"
             echo "ApacheConf: SSLCertificateFile    ${CRT}"
-            check_certchained "${CRT}" && echo "ApacheConf: SSLCACertificateFile  ${BND}"
+            check_cert_ischained "${CRT}" && echo "ApacheConf: SSLCACertificateFile  ${BND}"
             ;;
          *)
             echo "Error: something is wrong, verification failed! ($ret)"
@@ -205,6 +203,9 @@ or one of theses...
  cert_base_name.crt     cert_base_name.cer
  cert_base_name.key     cert_base_name.keystore
  cert_base_name.bundle  cert_base_name.ca-bundle
+
+In the case of a self-signed certificate,
+the C<check> command does not search for a certification chain file, but only verifies that the certificate is valid.
 
 Example:
 
