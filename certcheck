@@ -5,11 +5,11 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 export LANG=C
 
-export VERSION=0.3.12
+export VERSION=0.3.13
 
 function usage() {
    cat <<END_USAGE
-certcheck - check certificate chain
+certcheck - check certificate chain or self-signed
 
  certcheck check cert_base_name
  certcheck text  cert_base_name.pub.pem
@@ -173,7 +173,7 @@ __END__
 
 =head1 NAME
 
-certcheck - check certificate chain
+certcheck - check certificate chain or self-signed
 
 =head1 SYNOPSIS
 
@@ -186,8 +186,9 @@ certcheck - check certificate chain
 
 =head1 DESCRIPTION
 
-The command C<certcheck> checks a certificate (public, private and
-chain parts).
+The C<certcheck> command verifies a certificate.
+For a certificate signed by a certification authority, the three parts (public, private and chain) are checked with C<openssl>.
+For a self-signed certificate, it is verified that it works correctly with C<openssl>.
 
 =head2 <check>
 
