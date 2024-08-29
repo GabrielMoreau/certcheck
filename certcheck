@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 export LANG=C
 
-export VERSION=0.3.11
+export VERSION=0.3.12
 
 function usage() {
    cat <<END_USAGE
@@ -30,17 +30,17 @@ function say_warning() {
 [ -z "$(pidof openssl)" ] || say_warning "openssl running, consider: killall openssl"
 
 PID_SSL=
-function call_kick() {
+function call_server_kick() {
    [ -n "${PID_SSL}" ] && kill "${PID_SSL}" && sleep .2
    PID_SSL=
 }
 
-trap 'call_kick' 0
+trap 'call_server_kick' 0
 
-function call_serve() {
-   call_kick
+function call_server_launch() {
+   call_server_kick
    PID_SSL=
-   openssl s_server -key "${KEY}" -cert "${CRT}" "$@" -www &
+   openssl s_server -key "${KEY}" -cert "${CRT}" "$@" -www > /dev/null &
    PID_SSL=$!
    sleep .5    # give it time to startup
 }
@@ -62,17 +62,7 @@ function call_check_chained() {
 }
 
 function call_check_selfsigned() {
-   while read -r line
-   do
-      case "$line" in
-         'Verification error: self-signed certificate')
-            return 0
-            ;;
-         'Verification error: '*)
-            return 1
-            ;;
-      esac
-   done < <(echo | openssl s_client -verify 8 -CApath /etc/ssl/certs/)
+   echo | openssl s_client -verify 8 -CApath /etc/ssl/certs/ 2>&1 | grep -q 'Verification error: self-signed certificate' && return 0
    say_warning "something failed, verification output not found!"
    return 2
 }
@@ -91,7 +81,7 @@ function check_certchained() {
    return $((${same} - 1))
 }
 
-function call_cfiles() {
+function call_configfiles() {
    [ -s "${CRT}" ] || CRT="${ARG}"
    [ -s "${CRT}" ] || CRT="${ARG}.cer"
    [ -s "${CRT}" ] || CRT="${ARG}.pub.pem"
@@ -106,7 +96,7 @@ ARG="${1%.}"
 CRT="${ARG}.crt"
 KEY="${ARG}.key"
 BND="${ARG}.bundle"
-call_cfiles
+call_configfiles
 
 case "${action}" in
    check)
@@ -119,22 +109,22 @@ case "${action}" in
          [ -s "${BND}" ] || say_warning "missing ${BND}"
       fi
 
-      call_serve
+      call_server_launch
       if check_certchained "${CRT}"
       then
         call_check_chained && echo "Error: CA-Bundle is not needed!"
         echo
-        call_serve -CAfile "${BND}"
+        call_server_launch -CAfile "${BND}"
         call_check_chained
       else
-        call_check_selfsigned && echo "Error: not self-signed certificate!"
+        call_check_selfsigned || echo "Error: not self-signed certificate!"
         echo
       fi
       ret=$?
-      call_kick
+      call_server_kick
 
       echo
-      case $ret in
+      case ${ret} in
          0)
             echo "Ok: everything is good"
             echo "ApacheConf: SSLCertificateKeyFile ${KEY}"
