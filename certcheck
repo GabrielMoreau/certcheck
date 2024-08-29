@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 export LANG=C
 
-export VERSION=0.3.9
+export VERSION=0.3.10
 
 function usage() {
    cat <<END_USAGE
@@ -61,14 +61,18 @@ function call_check() {
    return 2
 }
 
-function call_autosign() {
-   openssl x509 -noout -text -in "${CRT}" \
+function check_certchained() {
+   local public_cert=$1
+   
+   # return 0: chain certificate, 1: self-signed certificate
+   same=$(openssl x509 -noout -text -in "${public_cert}" \
       | grep -E '[[:space:]](Subject|Issuer):[[:space:]]' \
       | sed -e 's/^[[:space:]]*Subject//; s/^[[:space:]]*Issuer//;' \
       | sort \
       | uniq -c \
       | awk '{print $1}' \
-      | head -1
+      | head -1)
+   return $((${same} - 1))
 }
 
 function call_cfiles() {
@@ -90,15 +94,19 @@ call_cfiles
 
 case "${action}" in
    check)
-      for cert in "${KEY}" "${CRT}" "${BND}"
+      for cert in "${KEY}" "${CRT}"
       do
          [ -s "${cert}" ] || say_warning "missing ${cert}"
       done
+      if check_certchained "${CRT}"
+      then
+         [ -s "${BND}" ] || say_warning "missing ${BND}"
+      fi
 
       call_serve
       call_check && echo "Error: CA-Bundle is not needed!"
       echo
-      call_serve -CAfile "${BND}"
+      check_certchained "${CRT}" && call_serve -CAfile "${BND}"
       call_check
       ret=$?
       call_kick
@@ -109,7 +117,7 @@ case "${action}" in
             echo "Ok: everything is good"
             echo "ApacheConf: SSLCertificateKeyFile ${KEY}"
             echo "ApacheConf: SSLCertificateFile    ${CRT}"
-            echo "ApacheConf: SSLCACertificateFile  ${BND}"
+            check_certchained "${CRT}" && echo "ApacheConf: SSLCACertificateFile  ${BND}"
             ;;
          *)
             echo "Error: something is wrong, verification failed! ($ret)"
