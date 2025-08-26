@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 export LANG=C
 
-export VERSION=0.3.14
+export VERSION=0.3.15
 
 function usage() {
    cat <<END_USAGE
@@ -188,7 +188,9 @@ The C<certcheck> command verifies a certificate.
 For a certificate signed by a certification authority, the three parts (public, private and chain) are checked with C<openssl>.
 For a self-signed certificate, it is verified that it works correctly with C<openssl>.
 
-=head2 <check>
+=head1 SUBCOMMANDS
+
+=head2 C<check>
 
 The subcommand C<check> verify the certificate chain
 and takes the certificate name base as input.
@@ -262,8 +264,13 @@ and extended by Gabriel Moreau <Gabriel.Moreau@univ-grenoble-alpes.fr>, Grenoble
 
 =head1 COPYRIGHT
 
-Copyright (C) 2015, Valentin Hilbig,
-Copyright (C) 2023-2024, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France.
+=over
+
+=item Copyright (C) 2015, Valentin Hilbig,
+
+=item Copyright (C) 2023-2025, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France.
+
+=back
 
 Licence: CC0 (Creative Commons Zero - https://spdx.org/licenses/CC0-1.0)
 
