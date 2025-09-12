@@ -2,10 +2,10 @@
 #
 # 2023/07/28 Gabriel Moreau <Gabriel.Moreau@univ-grenoble-alpes.fr>
 
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.3.16
+export VERSION=0.3.17
 
 function usage() {
    cat <<END_USAGE
