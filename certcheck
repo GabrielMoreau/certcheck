@@ -5,22 +5,26 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.3.17
+export VERSION=0.4.1
+
+################################################################
 
 function usage() {
    cat <<END_USAGE
 certcheck - check certificate chain or self-signed
 
- certcheck check cert_base_name
- certcheck text  cert_base_name.pub.pem
- certcheck txt   cert_base_name.pub.pem
- certcheck info  cert_base_name.pub.pem
+ certcheck check [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem] [--key|-k cert_base_name.key.pem] [--chain|-c cert_base_name.key.pem]
+ certcheck text  [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
+ certcheck txt   [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
+ certcheck info  [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
  certcheck version
  certcheck help
 
 txt and info subcommand are just alias for text.
 END_USAGE
    }
+
+################################################################
 
 function say_warning() {
    local exit_code=$1
@@ -30,7 +34,11 @@ function say_warning() {
    exit "${exit_code}"
    }
 
+################################################################
+
 [ -z "$(pidof openssl)" ] || say_warning 2 "openssl running, consider: killall openssl"
+
+################################################################
 
 PID_SSL=
 function call_server_kick() {
@@ -38,7 +46,11 @@ function call_server_kick() {
    PID_SSL=
 }
 
+################################################################
+
 trap 'call_server_kick' 0
+
+################################################################
 
 function call_server_launch() {
    call_server_kick
@@ -47,6 +59,8 @@ function call_server_launch() {
    PID_SSL=$!
    sleep .5    # give it time to startup
 }
+
+################################################################
 
 function check_client_chained() {
    while read -r line
@@ -63,10 +77,14 @@ function check_client_chained() {
    say_warning 3 "something failed, verification output not found!"
 }
 
+################################################################
+
 function check_client_selfsigned() {
    echo | openssl s_client -verify 8 -CApath /etc/ssl/certs/ 2>&1 | grep -q 'Verification error: self-signed certificate' && return 0
    say_warning 4 "something failed, verification output not found!"
 }
+
+################################################################
 
 function check_cert_ischained() {
    local public_cert=$1
@@ -82,23 +100,100 @@ function check_cert_ischained() {
    return $((same - 1))
 }
 
+################################################################
+
 function call_configfiles() {
+   local ARG=$1
+
+   [ -s "${CRT}" ] || CRT="${ARG}.crt"
    [ -s "${CRT}" ] || CRT="${ARG}"
    [ -s "${CRT}" ] || CRT="${ARG}.cer"
    [ -s "${CRT}" ] || CRT="${ARG}.pub.pem"
+
+   [ -s "${KEY}" ] || KEY="${ARG}.key"
    [ -s "${KEY}" ] || KEY="${ARG}.keystore"
    [ -s "${KEY}" ] || KEY="${ARG}.key.pem"
+
+   [ -s "${BND}" ] || BND="${ARG}.bundle"
    [ -s "${BND}" ] || BND="${ARG}.ca-bundle"
    [ -s "${BND}" ] || BND="${ARG}.chain.pem"
 }
 
+################################################################
+################################################################
+
+# Command line
 action=$1; shift
+OPT_SHORT=vb:p:k:c:
+OPT_LONG=verbose,base:,pub:,key:,chain:
+OPT_PARSED=$(getopt --options $OPT_SHORT --longoptions $OPT_LONG --name "$0" -- "$@")
+eval set -- "${OPT_PARSED}"
+
 ARG="${1%.}"
 CRT="${ARG}.crt"
 KEY="${ARG}.key"
 BND="${ARG}.bundle"
 call_configfiles
 
+# get options
+while true
+do
+  case "$1" in
+    -v|--verbose)
+      export VERBOSE='yes'
+      shift
+      ;;
+    -b|--base)
+      if [ -n "$2" ]
+      then
+        export ARG=$2
+        shift 2
+      else
+        usage
+        exit 11
+      fi
+      ;;
+    -p|--pub)
+      if [ -n "$2" ]
+      then
+        export CRT=$2
+        shift 2
+      else
+        usage
+        exit 12
+      fi
+      ;;
+    -k|--key)
+      if [ -n "$2" ]
+      then
+        export KEY=$2
+        shift 2
+      else
+        usage
+        exit 13
+      fi
+      ;;
+    -c|--chain)
+      if [ -n "$2" ]
+      then
+        export BND=$2
+        shift 2
+      else
+        usage
+        exit 14
+      fi
+      ;;
+    --)
+      shift
+      break
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+
+call_configfiles "${ARG}"
+
+# actions
 case "${action}" in
    check)
       for cert in "${KEY}" "${CRT}"
@@ -162,117 +257,3 @@ case "${action}" in
 esac
 
 exit 0
-
-
-################################################################
-# documentation
-################################################################
-
-__END__
-
-=head1 NAME
-
-certcheck - check certificate chain or self-signed
-
-=head1 SYNOPSIS
-
- certcheck check cert_base_name
- certcheck text  cert_base_name.pub.pem
- certcheck txt   cert_base_name.pub.pem
- certcheck info  cert_base_name.pub.pem
- certcheck version
- certcheck help
-
-=head1 DESCRIPTION
-
-The C<certcheck> command verifies a certificate.
-For a certificate signed by a certification authority, the three parts (public, private and chain) are checked with C<openssl>.
-For a self-signed certificate, it is verified that it works correctly with C<openssl>.
-
-=head1 SUBCOMMANDS
-
-=head2 C<check>
-
-The subcommand C<check> verify the certificate chain
-and takes the certificate name base as input.
-The three certificates (public, private and chain parts) can take the form:
-
- cert_base_name.pub.pem
- cert_base_name.key.pem
- cert_base_name.chain.pem
-
-or one of theses...
-
- cert_base_name.crt     cert_base_name.cer
- cert_base_name.key     cert_base_name.keystore
- cert_base_name.bundle  cert_base_name.ca-bundle
-
-In the case of a self-signed certificate,
-the C<check> command does not search for a certification chain file, but only verifies that the certificate is valid.
-
-Example:
-
- certcheck check cert_base_name
-
-=head2 C<text> or C<txt> or C<info>
-
-The C<text> (or C<txt>, C<info>) subcommand returns the main values
-(lifetime, DNS name...) of the public key.
-The certificate's name base can also be used as command-line input,
-in which case the same rules as with L<check> are applied
-to find the public certificate.
-
- certcheck text  cert_base_name.pub.pem
- certcheck txt   cert_base_name.pub.pem
- certcheck info  cert_base_name.pub.pem
-
-=head2 C<version>
-
-The C<version> subcommand returns the version of C<certcheck>.
-
- certcheck version
-
-=head2 C<help>
-
-The C<help> subcommand returns this help.
-
- certcheck help
-
-
-=head1 SEE ALSO
-
-Own project ressources:
-
-=over
-
-=item * L<Web site (Gitlab)|https://gricad-gitlab.univ-grenoble-alpes.fr/legi/soft/trokata/certcheck>
-
-=item * L<Online Manual|https://legi.gricad-pages.univ-grenoble-alpes.fr/soft/trokata/certcheck/certcheck.html>
-
-=item * L<Download package (Debian)|https://legi.gricad-pages.univ-grenoble-alpes.fr/soft/trokata/certcheck/download/>
-
-=back
-
-Note: The master Git repository in on the L<GRICAD Gitlab|https://gricad-gitlab.univ-grenoble-alpes.fr/legi/soft/trokata/certcheck>.
-Other Git repository are mirror or fork.
-
-
-=head1 AUTHORS
-
-Written by Valentin Hilbig (hilbix https://gist.github.com/hilbix/bde7c02009544faed7a1)
-and extended by Gabriel Moreau <Gabriel.Moreau@univ-grenoble-alpes.fr>, Grenoble - France
-
-
-=head1 COPYRIGHT
-
-=over
-
-=item * Copyright (C) 2015, Valentin Hilbig,
-
-=item * Copyright (C) 2023-2025, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France.
-
-=back
-
-Licence: CC0 (Creative Commons Zero - https://spdx.org/licenses/CC0-1.0)
-
-
