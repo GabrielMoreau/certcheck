@@ -50,3 +50,4 @@ help:
 check-quality: ## check code quality with shellcheck
 	@shellcheck certcheck
 	@shellcheck make-package-debian
+	@shellcheck  -e SC2034,SC2207 certcheck.bash_completion
