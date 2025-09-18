@@ -6,11 +6,11 @@ BINDIR=/usr/bin
 MANDIR=/usr/share/man/man1
 COMPDIR=/etc/bash_completion.d
 
-.PHONY: all ignore install update sync upload stat help pkg pages
+.PHONY: all ignore install update sync upload stat help pkg pages check-quality
 
 all:
-	pod2man certcheck | gzip > certcheck.1.gz
-	pod2html --css podstyle.css --index --header certcheck > certcheck.html
+	pod2man certcheck.pod | gzip > certcheck.1.gz
+	pod2html --css podstyle.css --index --header certcheck.pod > certcheck.html
 
 install: update
 
@@ -40,8 +40,13 @@ pages: all pkg
 
 help:
 	@echo "Possibles targets:"
-	@echo " * all     : make manual"
-	@echo " * install : complete install"
-	@echo " * update  : update install (do not update cron file)"
-	@echo " * sync    : sync with official repository"
-	@echo " * pkg     : build Debian package"
+	@echo " * all           : make manual"
+	@echo " * install       : complete install"
+	@echo " * update        : update install (do not update cron file)"
+	@echo " * sync          : sync with official repository"
+	@echo " * pkg           : build Debian package"
+	@echo " * check-quality : check code quality with shellcheck"
+
+check-quality: ## check code quality with shellcheck
+	@shellcheck certcheck
+	@shellcheck make-package-debian
