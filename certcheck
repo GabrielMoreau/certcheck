@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.4.1
+export VERSION=0.4.2
 
 ################################################################
 
@@ -104,6 +104,7 @@ function check_cert_ischained() {
 
 function call_configfiles() {
    local ARG=$1
+   [ -z "${ARG}" ] && return
 
    [ -s "${CRT}" ] || CRT="${ARG}.crt"
    [ -s "${CRT}" ] || CRT="${ARG}"
@@ -128,12 +129,6 @@ OPT_SHORT=vb:p:k:c:
 OPT_LONG=verbose,base:,pub:,key:,chain:
 OPT_PARSED=$(getopt --options $OPT_SHORT --longoptions $OPT_LONG --name "$0" -- "$@")
 eval set -- "${OPT_PARSED}"
-
-ARG="${1%.}"
-CRT="${ARG}.crt"
-KEY="${ARG}.key"
-BND="${ARG}.bundle"
-call_configfiles
 
 # get options
 while true
@@ -190,6 +185,12 @@ do
   esac
 done
 shift $((OPTIND-1))
+
+# default value without option
+if [ -z "${ARG}" ] || [ -z "${CRT}" ]
+then
+  export ARG="${1}"
+fi
 
 call_configfiles "${ARG}"
 
