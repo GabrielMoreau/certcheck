@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.4.2
+export VERSION=0.4.3
 
 ################################################################
 
@@ -13,10 +13,10 @@ function usage() {
    cat <<END_USAGE
 certcheck - check certificate chain or self-signed
 
- certcheck check [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem] [--key|-k cert_base_name.key.pem] [--chain|-c cert_base_name.key.pem]
- certcheck text  [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
- certcheck txt   [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
- certcheck info  [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
+ certcheck check [--base|-b certbase] [--pub|-b certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.key.pem]
+ certcheck text  [--base|-b certbase] [--pub|-b certbase.pub.pem]
+ certcheck txt   [--base|-b certbase] [--pub|-b certbase.pub.pem]
+ certcheck info  [--base|-b certbase] [--pub|-b certbase.pub.pem]
  certcheck version
  certcheck help
 

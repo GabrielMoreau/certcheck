@@ -4,10 +4,10 @@ certcheck - check certificate chain or self-signed
 
 =head1 SYNOPSIS
 
- certcheck check [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem] [--key|-k cert_base_name.key.pem] [--chain|-c cert_base_name.key.pem]
- certcheck text  [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
- certcheck txt   [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
- certcheck info  [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
+ certcheck check [--base|-b certbase] [--pub|-b certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.key.pem]
+ certcheck text  [--base|-b certbase] [--pub|-b certbase.pub.pem]
+ certcheck txt   [--base|-b certbase] [--pub|-b certbase.pub.pem]
+ certcheck info  [--base|-b certbase] [--pub|-b certbase.pub.pem]
  certcheck version
  certcheck help
 
@@ -17,36 +17,39 @@ The C<certcheck> command verifies a certificate.
 For a certificate signed by a certification authority, the three parts (public, private and chain) are checked with C<openssl>.
 For a self-signed certificate, it is verified that it works correctly with C<openssl>.
 
+All certification files must be in PEM format.
+This is why we prefer the C<.pem> extension for all files in this documentation.
+We therefore prefer to use a double extension such as C<.pub.pem> for the public part of the certificate.
+This is not a choice that is commonly found in online documentation.
+However, after making many mistakes, we have decided to stick with this preference.
+
 =head1 SUBCOMMANDS
 
 =head2 C<check>
 
- certcheck check [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem] [--key|-k cert_base_name.key.pem] [--chain|-c cert_base_name.key.pem]
+ certcheck check [--base|-b certbase] [--pub|-b certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.key.pem]
 
 The subcommand C<check> verify the certificate chain
 and takes the certificate name base as input.
-The three certificates (public, private and chain parts) can take the form:
+The three certificates (public key, private key, and chain parts) can be inferred from a base form (C<certbase>) using the following rules:
 
- cert_base_name.pub.pem
- cert_base_name.key.pem
- cert_base_name.chain.pem
-
-or one of theses...
-
- cert_base_name.crt     cert_base_name.cer
- cert_base_name.key     cert_base_name.keystore
- cert_base_name.bundle  cert_base_name.ca-bundle
+ public:  certbase.pub.pem    certbase.crt     certbase.cer
+ private: certbase.key.pem    certbase.key     certbase.keystore
+ chain:   certbase.chain.pem  certbase.bundle  certbase.ca-bundle
 
 In the case of a self-signed certificate,
 the C<check> command does not search for a certification chain file, but only verifies that the certificate is valid.
 
+Thus, the only data from the naming base (C<certbase>) on the command line
+via the C<--base> argument allows you to find the two or three files in PEM format.
+
 Example:
 
- certcheck check --base cert_base_name
+ certcheck check --base certbase
 
 =head2 C<text> or C<txt> or C<info>
 
- certcheck text  [--base|-b cert_base_name] [--pub|-b cert_base_name.pub.pem]
+ certcheck text  [--base|-b certbase] [--pub|-b certbase.pub.pem]
 
 The C<text> (or C<txt>, C<info>) subcommand returns the main values
 (lifetime, DNS name...) of the public key.
@@ -54,9 +57,9 @@ The certificate's name base can also be used as command-line input,
 in which case the same rules as with L<check> are applied
 to find the public certificate.
 
- certcheck text  cert_base_name.pub.pem
- certcheck txt   cert_base_name.pub.pem
- certcheck info  cert_base_name.pub.pem
+ certcheck text  --pub certbase.pub.pem
+ certcheck txt   --pub certbase.pub.pem
+ certcheck info  --pub certbase.pub.pem
 
 =head2 C<version>
 
