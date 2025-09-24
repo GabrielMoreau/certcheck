@@ -4,10 +4,10 @@ certcheck - check certificate chain or self-signed
 
 =head1 SYNOPSIS
 
- certcheck check [--base|-b certbase] [--pub|-b certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.key.pem]
- certcheck text  [--base|-b certbase] [--pub|-b certbase.pub.pem]
- certcheck txt   [--base|-b certbase] [--pub|-b certbase.pub.pem]
- certcheck info  [--base|-b certbase] [--pub|-b certbase.pub.pem]
+ certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.key.pem]
+ certcheck text  [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck txt   [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck info  [--base|-b certbase] [--pub|-p certbase.pub.pem]
  certcheck version
  certcheck help
 
@@ -27,7 +27,7 @@ However, after making many mistakes, we have decided to stick with this preferen
 
 =head2 C<check>
 
- certcheck check [--base|-b certbase] [--pub|-b certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.key.pem]
+ certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.key.pem]
 
 The subcommand C<check> verify the certificate chain
 and takes the certificate name base as input.
@@ -49,7 +49,7 @@ Example:
 
 =head2 C<text> or C<txt> or C<info>
 
- certcheck text  [--base|-b certbase] [--pub|-b certbase.pub.pem]
+ certcheck text  [--base|-b certbase] [--pub|-p certbase.pub.pem]
 
 The C<text> (or C<txt>, C<info>) subcommand returns the main values
 (lifetime, DNS name...) of the public key.
