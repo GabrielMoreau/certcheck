@@ -4,7 +4,7 @@ certcheck - check certificate chain or self-signed
 
 =head1 SYNOPSIS
 
- certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.key.pem]
+ certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.chain.pem]
  certcheck text  [--base|-b certbase] [--pub|-p certbase.pub.pem]
  certcheck txt   [--base|-b certbase] [--pub|-p certbase.pub.pem]
  certcheck info  [--base|-b certbase] [--pub|-p certbase.pub.pem]
@@ -27,7 +27,7 @@ However, after making many mistakes, we have decided to stick with this preferen
 
 =head2 C<check>
 
- certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.key.pem]
+ certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.chain.pem]
 
 The subcommand C<check> verify the certificate chain
 and takes the certificate name base as input.
