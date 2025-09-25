@@ -3,18 +3,21 @@
 
 have certcheck &&
 _certcheck() {
-   local cur # prev
+   local cur prev
 
    COMPREPLY=()
    #_get_comp_words_by_ref cur prev
    cur="${COMP_WORDS[COMP_CWORD]}"
-   # prev="${COMP_WORDS[COMP_CWORD-1]}"
+   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
    if [[ $COMP_CWORD -gt 1 && "${COMP_WORDS[1]}" =~ ^(check|text|txt|info)$ ]]
    then
-      if [[ "${cur}" == '-*' ]]
+      if [[ "${prev}" =~ ^(-p|-k|-c|--pub|--key|--chain)$ ]]
       then
-         COMPREPLY=($(compgen -W "$(certcheck help | grep "^ certcheck ${COMP_WORDS[1]}" | sed -e 's/[\[]/\n/g;' | grep -- '^-' | cut -f 1 -d ']' | cut -f 1 -d ' ' | sed -e 's/|/ /g;' | xargs echo -n)" -- "${cur}"))
+         compopt -o default; COMPREPLY=()
+      elif [[ "${cur}" =~ ^- || ! "${prev}" =~ ^- ]]
+      then
+         COMPREPLY=($(compgen -W "$(certcheck help | grep "^ certcheck ${COMP_WORDS[1]}" | sed -e 's/[\[|[:space:]]/\n/g;' | grep -- '^-' | sort -u | xargs echo -n)" -- "${cur}"))
       else
          compopt -o default; COMPREPLY=()
       fi
