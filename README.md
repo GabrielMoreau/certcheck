@@ -1,35 +1,34 @@
 # NAME
 
-certcheck - check certificate chain
+certcheck - check certificate chain or self-signed
 
 # SYNOPSIS
 
 ```bash
-certcheck check|text
+certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.chain.pem]
+certcheck text  [--base|-b certbase] [--pub|-p certbase.pub.pem]
+certcheck txt   [--base|-b certbase] [--pub|-p certbase.pub.pem]
+certcheck info  [--base|-b certbase] [--pub|-p certbase.pub.pem]
+certcheck version
+certcheck help
 ```
 
 # COMMAND
 
 ```bash
-    certcheck text  certbase.pub.pem
-    certcheck check certbase
-    certcheck version
-    certcheck help
+certcheck text  --pub certbase.pub.pem
+certcheck check --base certbase
+certcheck version
+certcheck help
 ```
 
 The command `certcheck` checks the certificate chain
 and takes the certificate name base as input.
 The three certificates can take the form:
 
-     certbase.pub.pem
-     certbase.key.pem
-     certbase.chain.pem
-
-or one of theses...
-
-     certbase.crt      certbase.cer
-     certbase.key      certbase.keystore
-     certbase.bundle   certbase.ca-bundle
+     public:  certbase.pub.pem    certbase.crt     certbase.cer
+     private: certbase.key.pem    certbase.key     certbase.keystore
+     chain:   certbase.chain.pem  certbase.bundle  certbase.ca-bundle
 
 With the text subcommand, `certcheck` returns the main values
 (lifetime, DNS name...) of the public key.
@@ -52,7 +51,7 @@ and extended by Gabriel Moreau <Gabriel.Moreau@univ-grenoble-alpes.fr>, Grenoble
 
 # COPYRIGHT
 
-Copyright (C) 2015, Valentin Hilbig
-Copyright (C) 2023-2025, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France
+* Copyright (C) 2015, Valentin Hilbig
+* Copyright (C) 2023-2025, LEGI UMR 5519 / CNRS UGA G-INP, Grenoble, France
 
 Licence: CC0 (Creative Commons Zero - https://spdx.org/licenses/CC0-1.0)
