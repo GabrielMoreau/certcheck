@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.4.8
+export VERSION=0.4.9
 
 ################################################################
 
@@ -36,7 +36,7 @@ function say_warning() {
 
 ################################################################
 
-[ -z "$(pidof openssl)" ] || say_warning 2 "openssl running, consider: killall openssl"
+[ -z "$(pidof openssl)" ] || say_warning 1 "openssl running, consider: killall openssl"
 
 ################################################################
 
@@ -74,14 +74,14 @@ function check_client_chained() {
             ;;
       esac
    done < <(echo | openssl s_client -verify 8 -CApath /etc/ssl/certs/)
-   say_warning 3 "something failed, verification output not found!"
+   say_warning 2 "something failed, verification output not found!"
 }
 
 ################################################################
 
 function check_client_selfsigned() {
    echo | openssl s_client -verify 8 -CApath /etc/ssl/certs/ 2>&1 | grep -q 'Verification error: self-signed certificate' && return 0
-   say_warning 4 "something failed, verification output not found!"
+   say_warning 3 "something failed, verification output not found!"
 }
 
 ################################################################
@@ -204,13 +204,11 @@ call_configfiles "${CERT_BASE}"
 # actions
 case "${action}" in
    check)
-      for cert in "${CERT_KEY}" "${CERT_CRT}"
-      do
-         [ -s "${cert}" ] || say_warning 5 "missing ${cert}"
-      done
+      [ -s "${CERT_KEY}" ] || say_warning 4 "missing public key certificate ${CERT_KEY}"
+      [ -s "${CERT_CRT}" ] || say_warning 5 "missing private key certificate ${CERT_CRT}"
       if check_cert_ischained "${CERT_CRT}"
       then
-         [ -s "${CERT_BND}" ] || say_warning 6 "missing ${CERT_BND}"
+         [ -s "${CERT_BND}" ] || say_warning 6 "missing chain certificate ${CERT_BND}"
       fi
 
       call_server_launch
