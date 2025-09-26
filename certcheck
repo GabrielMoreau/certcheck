@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.4.11
+export VERSION=0.4.12
 
 ################################################################
 
@@ -102,13 +102,24 @@ function check_cert_ischained() {
 
 ################################################################
 
+function check_cert_isselfsigned() {
+   local public_cert=$1
+   
+   # return 0: self-signed certificate, 1: chain certificate
+   openssl verify -CAfile "${public_cert}" "${public_cert}" > /dev/null 2>&1
+   return $?
+}
+
+################################################################
+
 function call_configfiles() {
    local CERT_BASE=$1
 
-   [ -z "${CERT_BASE}" ] && {
-      [ "${CERT_BND}" = 'inside' ] && CERT_BND="${CERT_CRT}";
-      return;
-      }
+   if [ -z "${CERT_BASE}" ]
+   then
+      [ "${CERT_BND}" = 'inside' ] && CERT_BND="${CERT_CRT}"
+      return
+   fi
 
    [ -s "${CERT_CRT}" ] || CERT_CRT="${CERT_BASE}.crt"
    [ -s "${CERT_CRT}" ] || CERT_CRT="${CERT_BASE}"
@@ -255,6 +266,12 @@ case "${action}" in
          grep -q -- '-----BEGIN CERTIFICATE-----' "${CERT_CRT}" || say_warning 8 'give the public and not the private key!'
       fi
       grep -q -- '-----BEGIN CERTIFICATE-----' "${CERT_CRT}" || say_warning 9 "your key isn't in PEM format!"
+      if check_cert_isselfsigned "${CERT_CRT}"
+      then
+         echo "Design: self-signed certificate"
+      else
+         echo "Design: chained certificate"
+      fi
       openssl x509 -noout -text -in "${CERT_CRT}" \
          | grep -E '(Subject|Not Before|Not After[[:space:]]|DNS|Issuer):' \
          | sed -e 's/^\s*//g;' \

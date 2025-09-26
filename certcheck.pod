@@ -58,6 +58,7 @@ Examples:
 
 The C<text> (or C<txt>, C<info>) subcommand returns the main values
 (lifetime, DNS name...) of the public key.
+This command also allows you to find out the key design: C<self-signed> or C<chained>.
 The certificate's name base can also be used as command-line input,
 in which case the same rules as with L<check> are applied
 to find the public certificate.
