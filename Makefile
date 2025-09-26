@@ -33,8 +33,9 @@ pages: all pkg
 	cp -p podstyle.css public/
 	cp -p LICENSE.md   public/
 	cp -p --no-clobber certcheck_*_all.deb  public/download/
-	cd public; ln -sf certcheck.html index.html
-	echo '<html><body><h1>DDT Debian Package</h1><ul>' > public/download/index.html
+	(cd public/download; ../../only-keep-1pkg-day 'certcheck_*.deb' | tee >(cat 1>&2) | bash)
+	(cd public; ln -sf certcheck.html index.html)
+	echo '<html><body><h1>Certcheck Debian Package</h1><ul>' > public/download/index.html
 	(cd public/download; while read file; do printf '<li><a href="%s">%s</a> (%s)</li>\n' $$file $$file $$(stat -c %y $$file | cut -f 1 -d ' '); done < <(ls -1t *.deb) >> index.html)
 	echo '</ul></body></html>' >> public/download/index.html
 

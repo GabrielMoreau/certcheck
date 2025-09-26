@@ -11,7 +11,6 @@ pages:
     - mkdir -p public/download
     - $(wget --no-check-certificate ${CI_PAGES_URL}/download.tar.gz -O download.tar.gz || exit 0)
     - 'file download.tar.gz | grep -q "gzip compressed data" && tar -xzf download.tar.gz public/download/'
-    - (cd public/download; ../../only-keep-1pkg-day 'certcheck_*.deb' | tee >(cat 1>&2) | bash)
     - make pages
     - tar -czf public/download.tar.gz public/download/
   artifacts:
