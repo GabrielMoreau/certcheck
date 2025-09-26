@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.4.10
+export VERSION=0.4.11
 
 ################################################################
 
@@ -104,7 +104,11 @@ function check_cert_ischained() {
 
 function call_configfiles() {
    local CERT_BASE=$1
-   [ -z "${CERT_BASE}" ] && return
+
+   [ -z "${CERT_BASE}" ] && {
+      [ "${CERT_BND}" = 'inside' ] && CERT_BND="${CERT_CRT}";
+      return;
+      }
 
    [ -s "${CERT_CRT}" ] || CERT_CRT="${CERT_BASE}.crt"
    [ -s "${CERT_CRT}" ] || CERT_CRT="${CERT_BASE}"
@@ -115,6 +119,7 @@ function call_configfiles() {
    [ -s "${CERT_KEY}" ] || CERT_KEY="${CERT_BASE}.keystore"
    [ -s "${CERT_KEY}" ] || CERT_KEY="${CERT_BASE}.key.pem"
 
+   [ "${CERT_BND}" = 'inside' ] && CERT_BND="${CERT_CRT}"
    [ -s "${CERT_BND}" ] || CERT_BND="${CERT_BASE}.bundle"
    [ -s "${CERT_BND}" ] || CERT_BND="${CERT_BASE}.ca-bundle"
    [ -s "${CERT_BND}" ] || CERT_BND="${CERT_BASE}.chain.pem"

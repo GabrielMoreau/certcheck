@@ -43,9 +43,14 @@ the C<check> command does not search for a certification chain file, but only ve
 Thus, the only data from the naming base (C<certbase>) on the command line
 via the C<--base> argument allows you to find the two or three files in PEM format.
 
-Example:
+If the C<--chain> option is set to C<inside>, then the public key would also be used as a chaining certificate.
+It is possible to integrate the public key and the chain into the same file.
+However, please note that the public key must be the first of the two certificates.
+
+Examples:
 
  certcheck check --base certbase
+ certcheck check --base certbase --chain inside
 
 =head2 C<text> or C<txt> or C<info>
 

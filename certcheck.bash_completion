@@ -12,10 +12,14 @@ _certcheck() {
 
    if [[ $COMP_CWORD -gt 1 && "${COMP_WORDS[1]}" =~ ^(check|text|txt|info)$ ]]
    then
-      if [[ "${prev}" =~ ^(-p|-k|-c|--pub|--key|--chain)$ ]]
+      if [[ "${prev}" =~ ^(-p|--pub|-k|--key)$ ]]
       then
          # compopt -o default; COMPREPLY=()
          COMPREPLY=($(compgen -f -- "${cur}" | grep -Ei '\.(pem|crt|cer|key|keystore|bundle|ca-bundle)$'))
+      elif [[ "${prev}" =~ ^(-c|--chain)$ ]]
+      then
+         # compopt -o default; COMPREPLY=()
+         COMPREPLY=($( (compgen -f -- "${cur}"; echo 'inside') | grep -Ei '(\.(pem|crt|cer|key|keystore|bundle|ca-bundle)|^inside)$' | sort -u))
       elif [[ "${cur}" =~ ^- || ! "${prev}" =~ ^- ]]
       then
          COMPREPLY=($(compgen -W "$(certcheck help | grep "^ certcheck ${COMP_WORDS[1]}" | sed -e 's/[\[|[:space:]]/\n/g;' | grep -- '^-' | sort -u | xargs echo -n)" -- "${cur}"))
