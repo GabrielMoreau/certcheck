@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.4.9
+export VERSION=0.4.10
 
 ################################################################
 
@@ -230,6 +230,9 @@ case "${action}" in
             echo "ApacheConf: SSLCertificateKeyFile ${CERT_KEY}"
             echo "ApacheConf: SSLCertificateFile    ${CERT_CRT}"
             check_cert_ischained "${CERT_CRT}" && echo "ApacheConf: SSLCACertificateFile  ${CERT_BND}"
+            echo "NGinxConf:  ssl_certificate       ${CERT_CRT};"
+            echo "NGinxConf:  ssl_certificate_key   ${CERT_KEY};"
+            check_cert_ischained "${CERT_CRT}" && echo "NGinxConf:  # cat ${CERT_BND} >> ${CERT_CRT}"
             ;;
          *)
             echo "Error: something is wrong, verification failed! ($ret)"
