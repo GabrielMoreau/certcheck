@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.4.15
+export VERSION=0.5.1
 
 ################################################################
 
@@ -108,6 +108,29 @@ function check_cert_isselfsigned() {
    # return 0: self-signed certificate, 1: chain certificate
    openssl verify -CAfile "${public_cert}" "${public_cert}" > /dev/null 2>&1
    return $?
+}
+
+################################################################
+function echo_cert_info() {
+   local public_cert=$1
+
+      [ -s "${public_cert}" ] || say_warning 7 "missing ${public_cert}"
+      if grep -q -- '-----BEGIN PRIVATE KEY-----' "${public_cert}"
+      then
+         # Cert could have the public and private part in the same file
+         grep -q -- '-----BEGIN CERTIFICATE-----' "${public_cert}" || say_warning 8 'give the public and not the private key!'
+      fi
+      grep -q -- '-----BEGIN CERTIFICATE-----' "${public_cert}" || say_warning 9 "your key isn't in PEM format!"
+      if check_cert_isselfsigned "${public_cert}"
+      then
+         echo "Design: self-signed certificate"
+      else
+         echo "Design: chained certificate"
+      fi
+      openssl x509 -noout -text -in "${public_cert}" \
+         | grep -E '(Subject|Not Before|Not After[[:space:]]|DNS|Issuer):' \
+         | sed -e 's/^\s*//g;' \
+         | sort -r
 }
 
 ################################################################
@@ -269,23 +292,16 @@ case "${action}" in
       ;;
 
    text|txt|info)
-      [ -s "${CERT_PUB}" ] || say_warning 7 "missing ${CERT_PUB}"
-      if grep -q -- '-----BEGIN PRIVATE KEY-----' "${CERT_PUB}"
+      if [[ $# -gt 0 ]]
       then
-         # Cert could have the public and private part in the same file
-         grep -q -- '-----BEGIN CERTIFICATE-----' "${CERT_PUB}" || say_warning 8 'give the public and not the private key!'
-      fi
-      grep -q -- '-----BEGIN CERTIFICATE-----' "${CERT_PUB}" || say_warning 9 "your key isn't in PEM format!"
-      if check_cert_isselfsigned "${CERT_PUB}"
-      then
-         echo "Design: self-signed certificate"
+         # case with many public certificate on command line
+         for cert_pub in "$@"
+         do
+            echo_cert_info "${cert_pub}"
+         done
       else
-         echo "Design: chained certificate"
+         echo_cert_info "${CERT_PUB}"
       fi
-      openssl x509 -noout -text -in "${CERT_PUB}" \
-         | grep -E '(Subject|Not Before|Not After[[:space:]]|DNS|Issuer):' \
-         | sed -e 's/^\s*//g;' \
-         | sort -r
       ;;
 
    version)
