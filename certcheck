@@ -219,7 +219,7 @@ done
 shift $((OPTIND-1))
 
 # default value without option
-if [ -z "${CERT_BASE}" ] || [ -z "${CERT_PUB}" ]
+if [ -z "${CERT_BASE}" ] && [ -z "${CERT_PUB}" ]
 then
   CERT_BASE="${1}"
 fi
