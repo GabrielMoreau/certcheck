@@ -297,6 +297,7 @@ case "${action}" in
          # case with many public certificate on command line
          for cert_pub in "$@"
          do
+            echo "Certificate: ${cert_pub}"
             echo_cert_info "${cert_pub}"
          done
       else
