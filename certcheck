@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.4.14
+export VERSION=0.4.15
 
 ################################################################
 
@@ -55,7 +55,7 @@ trap 'call_server_kick' 0
 function call_server_launch() {
    call_server_kick
    PID_SSL=
-   openssl s_server -key "${CERT_KEY}" -cert "${CERT_CRT}" "$@" -www > /dev/null &
+   openssl s_server -key "${CERT_KEY}" -cert "${CERT_PUB}" "$@" -www > /dev/null &
    PID_SSL=$!
    sleep .5    # give it time to startup
 }
@@ -117,23 +117,32 @@ function call_configfiles() {
 
    if [ -z "${CERT_BASE}" ]
    then
-      [ "${CERT_BND}" = 'inside' ] && CERT_BND="${CERT_CRT}"
+      [ "${CERT_BND}" = 'inside' ] && CERT_BND="${CERT_PUB}"
       return
    fi
 
-   [ -s "${CERT_CRT}" ] || CERT_CRT="${CERT_BASE}.crt"
-   [ -s "${CERT_CRT}" ] || CERT_CRT="${CERT_BASE}"
-   [ -s "${CERT_CRT}" ] || CERT_CRT="${CERT_BASE}.cer"
-   [ -s "${CERT_CRT}" ] || CERT_CRT="${CERT_BASE}.pub.pem"
+   [ -s "${CERT_PUB}" ] || CERT_PUB="${CERT_BASE}.crt"
+   [ -s "${CERT_PUB}" ] || CERT_PUB="${CERT_BASE}"
+   [ -s "${CERT_PUB}" ] || CERT_PUB="${CERT_BASE}.cer"
+   [ -s "${CERT_PUB}" ] || CERT_PUB="${CERT_BASE}.pub.pem"
 
    [ -s "${CERT_KEY}" ] || CERT_KEY="${CERT_BASE}.key"
    [ -s "${CERT_KEY}" ] || CERT_KEY="${CERT_BASE}.keystore"
    [ -s "${CERT_KEY}" ] || CERT_KEY="${CERT_BASE}.key.pem"
 
-   [ "${CERT_BND}" = 'inside' ] && CERT_BND="${CERT_CRT}"
+   [ "${CERT_BND}" = 'inside' ] && CERT_BND="${CERT_PUB}"
    [ -s "${CERT_BND}" ] || CERT_BND="${CERT_BASE}.bundle"
    [ -s "${CERT_BND}" ] || CERT_BND="${CERT_BASE}.ca-bundle"
    [ -s "${CERT_BND}" ] || CERT_BND="${CERT_BASE}.chain.pem"
+}
+
+################################################################
+
+function view_configfiles() {
+   echo "CERT_BASE=${CERT_BASE}"
+   echo "CERT_PUB=${CERT_PUB}"
+   echo "CERT_KEY=${CERT_KEY}"
+   echo "CERT_BND=${CERT_BND}"
 }
 
 ################################################################
@@ -149,7 +158,7 @@ eval set -- "${OPT_PARSED}"
 # global var
 export VERBOSE=''
 export CERT_BASE=''
-export CERT_CRT=''
+export CERT_PUB=''
 export CERT_KEY=''
 export CERT_BND=''
 
@@ -174,7 +183,7 @@ do
     -p|--pub)
       if [ -n "$2" ]
       then
-        CERT_CRT=$2
+        CERT_PUB=$2
         shift 2
       else
         usage
@@ -210,25 +219,26 @@ done
 shift $((OPTIND-1))
 
 # default value without option
-if [ -z "${CERT_BASE}" ] || [ -z "${CERT_CRT}" ]
+if [ -z "${CERT_BASE}" ] || [ -z "${CERT_PUB}" ]
 then
   CERT_BASE="${1}"
 fi
 
 call_configfiles "${CERT_BASE}"
+[ "${VERBOSE}" = 'yes' ] && view_configfiles
 
 # actions
 case "${action}" in
    check)
       [ -s "${CERT_KEY}" ] || say_warning 4 "missing public key certificate ${CERT_KEY}"
-      [ -s "${CERT_CRT}" ] || say_warning 5 "missing private key certificate ${CERT_CRT}"
-      if check_cert_ischained "${CERT_CRT}"
+      [ -s "${CERT_PUB}" ] || say_warning 5 "missing private key certificate ${CERT_PUB}"
+      if check_cert_ischained "${CERT_PUB}"
       then
          [ -s "${CERT_BND}" ] || say_warning 6 "missing chain certificate ${CERT_BND}"
       fi
 
       call_server_launch
-      if check_cert_ischained "${CERT_CRT}"
+      if check_cert_ischained "${CERT_PUB}"
       then
         check_client_chained && echo "Error: CA-Bundle is not needed!"
         call_server_launch -CAfile "${CERT_BND}"
@@ -244,11 +254,11 @@ case "${action}" in
          0)
             echo "Ok: everything is good"
             echo "ApacheConf: SSLCertificateKeyFile ${CERT_KEY}"
-            echo "ApacheConf: SSLCertificateFile    ${CERT_CRT}"
-            check_cert_ischained "${CERT_CRT}" && echo "ApacheConf: SSLCACertificateFile  ${CERT_BND}"
-            echo "NGinxConf:  ssl_certificate       ${CERT_CRT};"
+            echo "ApacheConf: SSLCertificateFile    ${CERT_PUB}"
+            check_cert_ischained "${CERT_PUB}" && echo "ApacheConf: SSLCACertificateFile  ${CERT_BND}"
+            echo "NGinxConf:  ssl_certificate       ${CERT_PUB};"
             echo "NGinxConf:  ssl_certificate_key   ${CERT_KEY};"
-            check_cert_ischained "${CERT_CRT}" && echo "NGinxConf:  # cat ${CERT_BND} >> ${CERT_CRT}"
+            check_cert_ischained "${CERT_PUB}" && echo "NGinxConf:  # cat ${CERT_BND} >> ${CERT_PUB}"
             ;;
          *)
             echo "Error: something is wrong, verification failed! ($ret)"
@@ -259,20 +269,20 @@ case "${action}" in
       ;;
 
    text|txt|info)
-      [ -s "${CERT_CRT}" ] || say_warning 7 "missing ${CERT_CRT}"
-      if grep -q -- '-----BEGIN PRIVATE KEY-----' "${CERT_CRT}"
+      [ -s "${CERT_PUB}" ] || say_warning 7 "missing ${CERT_PUB}"
+      if grep -q -- '-----BEGIN PRIVATE KEY-----' "${CERT_PUB}"
       then
          # Cert could have the public and private part in the same file
-         grep -q -- '-----BEGIN CERTIFICATE-----' "${CERT_CRT}" || say_warning 8 'give the public and not the private key!'
+         grep -q -- '-----BEGIN CERTIFICATE-----' "${CERT_PUB}" || say_warning 8 'give the public and not the private key!'
       fi
-      grep -q -- '-----BEGIN CERTIFICATE-----' "${CERT_CRT}" || say_warning 9 "your key isn't in PEM format!"
-      if check_cert_isselfsigned "${CERT_CRT}"
+      grep -q -- '-----BEGIN CERTIFICATE-----' "${CERT_PUB}" || say_warning 9 "your key isn't in PEM format!"
+      if check_cert_isselfsigned "${CERT_PUB}"
       then
          echo "Design: self-signed certificate"
       else
          echo "Design: chained certificate"
       fi
-      openssl x509 -noout -text -in "${CERT_CRT}" \
+      openssl x509 -noout -text -in "${CERT_PUB}" \
          | grep -E '(Subject|Not Before|Not After[[:space:]]|DNS|Issuer):' \
          | sed -e 's/^\s*//g;' \
          | sort -r
