@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.5.5
+export VERSION=0.5.6
 
 ################################################################
 
@@ -17,6 +17,8 @@ certcheck - check certificate chain or self-signed
  certcheck text  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
  certcheck txt   [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
  certcheck info  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck text  [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck txt   [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
  certcheck info  [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
  certcheck version
  certcheck help

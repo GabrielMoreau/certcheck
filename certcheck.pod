@@ -8,7 +8,9 @@ certcheck - check certificate chain or self-signed
  certcheck text  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
  certcheck txt   [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
  certcheck info  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
- certcheck info  certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck text  [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck txt   [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck info  [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
  certcheck version
  certcheck help
 
@@ -55,7 +57,8 @@ Examples:
 
 =head2 C<text> or C<txt> or C<info>
 
- certcheck text  [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck text  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck text  [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
 
 The C<text> (or C<txt>, C<info>) subcommand returns the main values
 (lifetime, DNS name...) of the public key.
@@ -64,14 +67,14 @@ The certificate's name base can also be used as command-line input,
 in which case the same rules as with L<check> are applied
 to find the public certificate.
 
- certcheck text  --pub certbase.pub.pem
- certcheck txt   --pub certbase.pub.pem
- certcheck info  --pub certbase.pub.pem
+ certcheck text --pub certbase.pub.pem
+ certcheck txt  --pub certbase.pub.pem
+ certcheck info --pub certbase.pub.pem
 
 If no option is passed, but several public certificates are on the command line,
 then they are all processed with the C<info> option (or C<txt>, C<info>)).
 
- certcheck info  certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck text certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
 
 It is possible to have the dates of your certificates sorted by expiration date.
 This makes it easier to get an overview of critical renewals.
@@ -79,11 +82,16 @@ This makes it easier to get an overview of critical renewals.
 In any case, monitoring with a tool such as Nagios will alert you
 one week to 15 days before the end of a certificate's validity period.
 
- LANG=C certcheck  info */*/certbase.pub.pem \
+ LANG=C certcheck text */*/certbase.pub.pem \
   | grep -E '^(Certificate:|Not After)' \
   | cut -f 2- -d ':' \
   | paste -d ' ' - - \
   | LANG=C sort -k 5 -k 2M -k3,4
+
+The C<--sort> option does exactly that.
+To be reliable, the output is always in C<LANG=C>.
+
+ certcheck text --sort certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
 
 =head2 C<version>
 
