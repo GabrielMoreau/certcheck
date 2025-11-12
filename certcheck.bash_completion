@@ -22,7 +22,7 @@ _certcheck() {
          COMPREPLY=($( (compgen -f -- "${cur}"; echo 'inside') | grep -Ei '(\.(pem|crt|cer|key|keystore|bundle|ca-bundle)|^inside)$' | sort -u))
       elif [[ "${cur}" =~ ^- || ! "${prev}" =~ ^- ]]
       then
-         COMPREPLY=($(compgen -W "$(certcheck help | grep "^ certcheck ${COMP_WORDS[1]}" | sed -e 's/[\[|[:space:]]/\n/g;' | grep -- '^-' | sort -u | xargs echo -n)" -- "${cur}"))
+         COMPREPLY=($(compgen -W "$(certcheck help | grep "^ certcheck ${COMP_WORDS[1]}" | sed -e 's/[][|[:space:]]/\n/g;' | grep -- '^-' | sort -u | xargs echo -n)" -- "${cur}"))
       else
          # compopt -o default; COMPREPLY=()
          COMPREPLY=($(compgen -f -- "${cur}" | grep -Ei '\.(pem|crt|cer|key|keystore|bundle|ca-bundle)$'))
