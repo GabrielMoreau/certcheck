@@ -4,15 +4,17 @@ certcheck - check certificate chain or self-signed
 
 =head1 SYNOPSIS
 
- certcheck check [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.chain.pem]
- certcheck text  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
- certcheck txt   [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
- certcheck info  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
- certcheck text  [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
- certcheck txt   [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
- certcheck info  [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.chain.pem]
+ certcheck text  [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck txt   [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck info  [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck text  [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck txt   [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck info  [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
  certcheck version
  certcheck help
+ 
+All subcommands have the C<--verbose> (C<-v>) option.
 
 =head1 DESCRIPTION
 
@@ -27,6 +29,9 @@ This is not a choice that is commonly found in online documentation.
 However, after making many mistakes, we have decided to stick with this preference.
 
 =head1 SUBCOMMANDS
+
+With the C<--verbose> (C<-v>) option, subcommands explicitly indicate certificate files (public part, private part, chain).
+This can be useful for debugging.
 
 =head2 C<check>
 
@@ -57,8 +62,8 @@ Examples:
 
 =head2 C<text> or C<txt> or C<info>
 
- certcheck text  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
- certcheck text  [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck text [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck text [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
 
 The C<text> (or C<txt>, C<info>) subcommand returns the main values
 (lifetime, DNS name...) of the public key.
