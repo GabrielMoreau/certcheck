@@ -4,10 +4,11 @@ certcheck - check certificate chain or self-signed
 
 =head1 SYNOPSIS
 
- certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.chain.pem]
- certcheck text  [--base|-b certbase] [--pub|-p certbase.pub.pem]
- certcheck txt   [--base|-b certbase] [--pub|-p certbase.pub.pem]
- certcheck info  [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck check [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.chain.pem]
+ certcheck text  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck txt   [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck info  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck info  certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
  certcheck version
  certcheck help
 
@@ -66,6 +67,23 @@ to find the public certificate.
  certcheck text  --pub certbase.pub.pem
  certcheck txt   --pub certbase.pub.pem
  certcheck info  --pub certbase.pub.pem
+
+If no option is passed, but several public certificates are on the command line,
+then they are all processed with the C<info> option (or C<txt>, C<info>)).
+
+ certcheck info  certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+
+It is possible to have the dates of your certificates sorted by expiration date.
+This makes it easier to get an overview of critical renewals.
+
+In any case, monitoring with a tool such as Nagios will alert you
+one week to 15 days before the end of a certificate's validity period.
+
+ LANG=C certcheck  info */*/certbase.pub.pem \
+  | grep -E '^(Certificate:|Not After)' \
+  | cut -f 2- -d ':' \
+  | paste -d ' ' - - \
+  | LANG=C sort -k 5 -k 2M -k3,4
 
 =head2 C<version>
 
