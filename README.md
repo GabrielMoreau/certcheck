@@ -5,12 +5,15 @@ certcheck - check certificate chain or self-signed
 # SYNOPSIS
 
 ```bash
-certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.chain.pem]
-certcheck text  [--base|-b certbase] [--pub|-p certbase.pub.pem]
-certcheck txt   [--base|-b certbase] [--pub|-p certbase.pub.pem]
-certcheck info  [--base|-b certbase] [--pub|-p certbase.pub.pem]
-certcheck version
-certcheck help
+ certcheck check [--base|-b certbase] [--pub|-p certbase.pub.pem] [--key|-k certbase.key.pem] [--chain|-c certbase.chain.pem]
+ certcheck text  [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck txt   [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck info  [--base|-b certbase] [--pub|-p certbase.pub.pem]
+ certcheck text  [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck txt   [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck info  [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck version
+ certcheck help
 ```
 
 # COMMAND
