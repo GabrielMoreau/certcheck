@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.5.3
+export VERSION=0.5.4
 
 ################################################################
 
@@ -17,7 +17,7 @@ certcheck - check certificate chain or self-signed
  certcheck text  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
  certcheck txt   [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
  certcheck info  [--verbose|-v] [--base|-b certbase] [--pub|-p certbase.pub.pem]
- certcheck info  certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
+ certcheck info  [--verbose|-v] [--sort|-s] certbase1.pub.pem certbase2.pub.pem certbase*.pub.pem
  certcheck version
  certcheck help
 
@@ -174,13 +174,14 @@ function view_configfiles() {
 
 # command line
 action=$1; shift
-OPT_SHORT=vb:p:k:c:
-OPT_LONG=verbose,base:,pub:,key:,chain:
+OPT_SHORT=vsb:p:k:c:
+OPT_LONG=verbose,sort,base:,pub:,key:,chain:
 OPT_PARSED=$(getopt --options $OPT_SHORT --longoptions $OPT_LONG --name "$0" -- "$@")
 eval set -- "${OPT_PARSED}"
 
 # global var
 export VERBOSE=''
+export SORT=''
 export CERT_BASE=''
 export CERT_PUB=''
 export CERT_KEY=''
@@ -192,6 +193,10 @@ do
   case "$1" in
     -v|--verbose)
       VERBOSE='yes'
+      shift
+      ;;
+    -s|--sort)
+      SORT='yes'
       shift
       ;;
     -b|--base)
@@ -296,11 +301,22 @@ case "${action}" in
       if [[ $# -gt 0 ]]
       then
          # case with many public certificate on command line
-         for cert_pub in "$@"
-         do
-            echo "Certificate: ${cert_pub}"
-            echo_cert_info "${cert_pub}"
-         done
+         if [ "${SORT}" = 'yes' ]
+         then
+            # option --sort
+            # pipe the result of the info subcommand
+            LANG=C $0 info "$@" | grep -E '^(Certificate:|Not After)' \
+               | cut -f 2- -d ':' \
+               | paste -d ' ' - - \
+               | LANG=C sort -k 5 -k 2M -k3,4
+         else
+            # loop over certificate
+            for cert_pub in "$@"
+            do
+               echo "Certificate: ${cert_pub}"
+               echo_cert_info "${cert_pub}"
+            done
+         fi
       else
          echo_cert_info "${CERT_PUB}"
       fi
