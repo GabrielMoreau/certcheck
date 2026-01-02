@@ -5,7 +5,7 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LANG=C
 
-export VERSION=0.5.7
+export VERSION=0.5.8
 
 ################################################################
 
